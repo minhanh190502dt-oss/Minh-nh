@@ -34,10 +34,7 @@ def sparkles(pts,a,b,layer=4):
 def chapter(a,b,num,small,title,sub=None,y=420):
     out=[]
     # line 1: badge + italic word
-    sw=tw(small,"IT",84); bw=100; gap=16; total=bw+gap+sw; x0=540-total/2
-    bx=x0+bw/2; sx=x0+bw+gap+sw/2; y1=y-125
-    out.append(ev(5,a,b,"Draw",f"{{\\an5\\pos({bx:.0f},{y1})\\p1\\1c{PINK}\\bord0{POPT}}}{rrect(bw,76,18)}"))
-    out.append(ev(6,a,b,"Chip",f"{{\\an5\\pos({bx:.0f},{y1+1})\\fnMont XB\\fs52\\1c&H00FFFFFF&{POPT}}}{num}"))
+    sx=540; y1=y-115
     out.append(ev(6,a,b,"Serif",f"{{\\an5\\pos({sx:.0f},{y1-4})\\fad(150,180)\\move({sx:.0f},{y1+16},{sx:.0f},{y1-4},0,250)}}{small}"))
     fs=128 if len(title)<=12 else int(128*12/len(title))
     out.append(ev(6,a+0.08,b,"Head",f"{{\\an5\\pos(540,{y})\\fs{fs}{POPT}}}{title}"))

@@ -1,6 +1,6 @@
 # Phong cách edit Daily Vlog của chị (bắt buộc áp dụng cho mọi vlog sau)
 
-Tài liệu này ghi lại **toàn bộ yêu cầu và sở thích** chị đã chốt khi làm vlog "Sài Gòn – đi giải ngố" (bản chị duyệt: **bản 7 + hiệu ứng đầu to = bản 9**).
+Tài liệu này ghi lại **toàn bộ yêu cầu và sở thích** chị đã chốt khi làm vlog "Sài Gòn – đi giải ngố" (bản chị duyệt cuối: **bản 10** = bản 7 + hiệu ứng đầu to + bỏ số thứ tự và chữ "chặng").
 Từ nay, mỗi khi edit daily vlog cho chị, làm theo đúng các mục dưới đây. Code và tài nguyên nằm trong `vlog-style/`.
 
 ## 0. Cách xưng hô và làm việc
@@ -30,7 +30,7 @@ Từ nay, mỗi khi edit daily vlog cho chị, làm theo đúng các mục dư�
 | Phụ đề lời thoại | **Mont SB** (Montserrat SemiBold) 56 | trắng, viền tối mờ và blur nhẹ | đơn giản, 4–6 chữ một cụm, không còn chữ lẻ một mình |
 | Từ khóa trong phụ đề | như trên | **vàng nhạt** `#FFF1A8` | các ý chính của chị |
 | Từ cần nhấn mạnh đặc biệt | như trên, to 125% | **hồng đậm** `#F27B9A` | ví dụ chữ "dở" |
-| Tiêu đề chặng | ô số **hồng pastel** (Mont XB) + chữ nghiêng *Play It* màu kem + tiêu đề **Mont XB** in hoa **xanh pastel** `#B4DCF5` + dòng phụ **hồng pastel** `#F4A7C0` | | ví dụ "01 *chặng* CÀ PHÊ & MÁI NGỐ" |
+| Tiêu đề từng đoạn | cụm chữ nghiêng *Play It* màu kem dẫn vào câu + tiêu đề **Mont XB** in hoa **xanh pastel** `#B4DCF5` + dòng phụ **hồng pastel** `#F4A7C0` | | ví dụ "*mở đầu bằng* CÀ PHÊ & MÁI NGỐ", "*điều em học được* MUỐN GIỎI". **KHÔNG dùng số thứ tự (01, 02…) và KHÔNG dùng chữ "chặng"**: chị đã yêu cầu bỏ |
 | Nhãn bo tròn (pill) | Mont SB 50, chữ tối | nền trắng / vàng / xanh / hồng pastel | đặt ngay trên phụ đề |
 | Chữ nghiêng to để nhấn | *Play It* (Playfair Display Italic) | kem | ví dụ *bật mí*, *kẹt xe*, *đứng hình...*, *clip sau* |
 | Lấp lánh | ✦ (DejaVu Sans) | kem | nhấp nháy nhẹ quanh tiêu đề |
@@ -44,7 +44,7 @@ Từ nay, mỗi khi edit daily vlog cho chị, làm theo đúng các mục dư�
   - Lúc nói chữ "dở" đầu: chữ *dở* hồng, to, rung lắc, kèm tiếng boom.
   - Lúc nói "không còn dở": chữ *dở* bị gạch ngang, chữ ***hết dở!*** bật lên, kèm ding và sparkle.
   - Hình zoom vào.
-- Câu chủ đề (ví dụ "muốn giỏi thì làm thật nhiều") có tiêu đề chặng riêng và zoom.
+- Câu chủ đề (ví dụ "muốn giỏi thì làm thật nhiều") có tiêu đề riêng và zoom.
 
 ## 5. Chuyển cảnh: phải MƯỢT
 - Giữa các cảnh: **hòa mờ (dissolve) khoảng 0,3 giây**. Giữa các đoạn lớn: **trượt mượt (smoothleft, up, right, down) khoảng 0,45 giây**, kèm whoosh nhẹ.
