@@ -11,14 +11,15 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 - Vibe: vui, Gen Z, nói kiểu miền Tây/miền Nam thân thiện ("mấy bà", "hông", "nha").
 
 ## 3 giây đầu (HOOK) — bắt buộc phải thật hút mắt, không được nhạt
-- Lấy cảnh đẹp/hài nhất (thường là thành phẩm) đưa lên đầu, dài ~3 giây.
+- **Video mở đầu NGAY bằng giọng chị** (câu đầu tiên chị nói, vd "Nè nè!") — KHÔNG chèn đoạn teaser im lặng.
+  Hiệu ứng hook được đè lên 3 giây đầu trong lúc chị đang nói.
 - Chớp trắng + glitch (lệch màu RGB) ngay khung đầu, zoom giật mạnh (1.55x → 1.12x), rung khung.
 - Đường tốc độ kiểu anime (focus lines) dồn vào giữa + viền tối (vignette).
 - Tiêu đề 2 dòng ĐẬP vào màn hình (scale lớn → nhỏ, kèm "bùm"): dòng 1 trắng, dòng 2 cam có "?!".
 - Emoji bung tỏa từ giữa (🧋🔥😱💨).
 - **KHÔNG tự bịa chữ quảng cáo/khẳng định về sản phẩm** (vd "HÀNG HIẾM", "BEST SELLER", giá, khuyến mãi…).
   Chữ trên video chỉ lấy từ lời thoại của chị hoặc điều chị yêu cầu. Muốn thêm câu nào ngoài lời thoại thì hỏi chị trước.
-- Một dòng phụ nhỏ gợi tò mò + emoji 😭.
+- Tiêu đề đặt phía trên (y≈500–710) để không đè phụ đề lời thoại; mờ dần ở giây 2.7–3.0.
 - Âm thanh: boom + scratch mở đầu, pop mỗi lần chữ đập, riser dâng dần → drop vào nội dung chính.
 
 ## Font & chữ (giống thumbnail kênh Muối House)
