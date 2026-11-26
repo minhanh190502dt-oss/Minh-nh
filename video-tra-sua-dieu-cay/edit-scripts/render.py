@@ -218,16 +218,17 @@ def camera(kind, seg, st, ot):
                 z *= 1 + (zz - 1) * (1 - ease((st - b) / 0.12))
     elif kind == "hook":
         # violent punch-in on open, then slow push
-        z = 1.55 - 0.43 * ease(ot / 0.35)
-        z += 0.12 * max(0.0, ot - 0.35) / (HOOK_FX - 0.35)
-        for t0 in (0.15, 0.45):   # micro bumps on each title slam
+        # rush-in from far away (with spin + zoom blur applied in apply_camera)
+        z = 2.3 - 1.18 * ease(ot / 0.32)
+        z += 0.12 * max(0.0, ot - 0.32) / (HOOK_FX - 0.32)
+        for t0 in (0.10, 0.62, 0.92):   # micro bumps on each title slam
             if t0 <= ot < t0 + 0.15:
                 z += 0.08 * (1 - (ot - t0) / 0.15)
     dx = dy = 0.0
     shakes = list(SHAKES) if kind == "main" else []
     tt = st
     if kind == "hook":
-        shakes = [(0.0, 0.35, 34), (0.15, 0.3, 26), (0.45, 0.4, 30), (1.0, 0.25, 14)]
+        shakes = [(0.30, 0.25, 30), (0.62, 0.3, 26), (0.92, 0.4, 32)]
         tt = ot
     for t0, dur, amp in shakes:
         if t0 <= tt <= t0 + dur:
@@ -235,11 +236,36 @@ def camera(kind, seg, st, ot):
             rnd = random.Random(int(tt * 1000) + int(t0 * 7))
             dx += amp * k * rnd.uniform(-1, 1)
             dy += amp * k * rnd.uniform(-1, 1)
+    global CUR_SPIN, CUR_BLUR
+    CUR_SPIN = -16 * (1 - ease(ot / 0.32)) if kind == "hook" and ot < 0.32 else 0.0
+    CUR_BLUR = (1 - ot / 0.32) if kind == "hook" and ot < 0.32 else 0.0
     if (dx or dy) and z < 1.06:
         z = 1.06
     return z, dx, dy
 
+CUR_SPIN = 0.0
+CUR_BLUR = 0.0
+
+def _crop_zoom(img, z, dx, dy):
+    cw, ch = W / z, H / z
+    cx, cy = W / 2 + dx, H * 0.47 + dy
+    x0 = min(max(cx - cw / 2, 0), W - cw)
+    y0 = min(max(cy - ch / 2, 0), H - ch)
+    return img.resize((W, H), Image.BICUBIC, box=(x0, y0, x0 + cw, y0 + ch))
+
 def apply_camera(img, z, dx, dy):
+    if CUR_SPIN or CUR_BLUR:
+        # radial zoom blur: average several progressively zoomed copies
+        n = 6
+        acc = np.zeros((H, W, 3), np.float32)
+        for i in range(n):
+            acc += np.asarray(_crop_zoom(img, z * (1 + 0.09 * CUR_BLUR * i), dx, dy), np.float32)
+        out = Image.fromarray((acc / n).astype(np.uint8))
+        if CUR_SPIN:
+            out = out.rotate(CUR_SPIN, resample=Image.BICUBIC)
+            # rotation leaves corners empty -> cover by a slight extra zoom
+            out = _crop_zoom(out, 1.0 + abs(CUR_SPIN) / 40, 0, 0)
+        return out
     if z == 1.0 and dx == 0 and dy == 0:
         return img
     cw, ch = W / z, H / z
@@ -301,11 +327,29 @@ def draw_hook(frame, ot):
     # focus lines (re-drawn every 2 frames for a "vibrating" comic look)
     k = int(ot * FPS / 2) % 4
     fl = cached(("fl", k), lambda: _focus_lines(k))
-    a = 0.85 if ot < 2.0 else 0.85 * max(0, 1 - (ot - 2.0) / 1.0)
+    a = (0.85 if ot >= 0.3 else 0.85 * ot / 0.3) if ot < 2.0 else 0.85 * max(0, 1 - (ot - 2.0) / 1.0)
     paste_center(frame, fl, W / 2, H / 2, 1.0, alpha=a)
     frame.alpha_composite(cached("vig", _vignette))
     # emoji burst from centre at second slam
-    bt = ot - 0.45
+    # shockwave rings on each "nè"
+    for r0 in (0.0, 0.10, 0.30):
+        rt = ot - r0
+        if 0 <= rt <= 0.5:
+            ring = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            dr = ImageDraw.Draw(ring)
+            rad = 80 + 900 * ease(rt / 0.5)
+            wd = int(26 * (1 - rt / 0.5)) + 3
+            al = int(255 * (1 - rt / 0.5))
+            col = (255, 255, 255, al) if r0 != 0.10 else (255, 122, 26, al)
+            cx, cy = W / 2, 900
+            dr.ellipse((cx - rad, cy - rad, cx + rad, cy + rad), outline=col, width=wd)
+            frame.alpha_composite(ring)
+    # giant "NÈ NÈ!" (her opening words) centred
+    if ot < 0.60:
+        nn = cached("nene", lambda: text_block("*NÈ NÈ!*", size=190, stroke=18, emo="1f440", max_w=1060))
+        a_ = 1.0 if ot < 0.5 else max(0, (0.6 - ot) / 0.1)
+        paste_center(frame, nn, W / 2, 900, slam_scale(ot - 0.02), alpha=a_, rot=-5)
+    bt = ot - 0.92
     if 0 <= bt <= 1.3:
         for ang, spd, code, rot in BURST:
             dist = spd * (1 - (1 - min(bt, 0.8) / 0.8) ** 2) * 0.55
@@ -315,14 +359,33 @@ def draw_hook(frame, ot):
     t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=165, stroke=15, max_w=1040))
     t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=175, stroke=17, max_w=1060))
     fade = 1.0 if ot < HOOK_FX - 0.3 else max(0.0, (HOOK_FX - ot) / 0.3)
-    paste_center(frame, t1, W / 2, 500, slam_scale(ot - 0.15), alpha=fade, rot=-4)
-    paste_center(frame, t2, W / 2, 710, slam_scale(ot - 0.45), alpha=fade, rot=3)
+    paste_center(frame, t1, W / 2, 500, slam_scale(ot - 0.62), alpha=fade, rot=-4)
+    paste_center(frame, t2, W / 2, 710, slam_scale(ot - 0.92), alpha=fade, rot=3)
     bob = math.sin(ot * 9) * 12
-    paste_center(frame, emoji("1f9cb", 220), 150, 290 + bob, pop_scale(ot - 1.2, 0.2), alpha=fade, rot=12)
+    paste_center(frame, emoji("1f9cb", 200), 140, 380 + bob, pop_scale(ot - 1.2, 0.2), alpha=fade, rot=12)
     paste_center(frame, emoji("1f525", 190), 930, 300 - bob, pop_scale(ot - 1.25, 0.2), alpha=fade, rot=-10)
 
 # ---------- overlays ----------
 CAP_Y = 1300
+
+def logo_badge():
+    """Text badge 'MUỐI HOUSE / TÂN HỒNG' in brand teal (placeholder until real logo file is provided)."""
+    f1 = font(FONT_BLACK, 54); f2 = font(FONT_BLACK, 46)
+    t1, t2 = "MUỐI HOUSE", "TÂN HỒNG"
+    w = int(max(f1.getlength(t1), f2.getlength(t2)) + 60)
+    h = 168
+    img = Image.new("RGBA", (w + 10, h + 12), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle((6, 9, w + 6, h + 9), radius=34, fill=(0, 0, 0, 110))
+    d.rounded_rectangle((0, 0, w, h), radius=34, fill=TEAL + (240,), outline=(255, 255, 255), width=5)
+    for txt, f, y, col in ((t1, f1, 58, (255, 255, 255)), (t2, f2, 122, (255, 214, 120))):
+        bb = d.textbbox((0, 0), txt, font=f, anchor="ms")
+        d.text((w / 2, y + 8), txt, font=f, fill=col, anchor="ms")
+    return img
+
+def draw_logo(frame):
+    lg = cached("logo", logo_badge)
+    frame.alpha_composite(lg, (36, 80))
 
 def draw_overlays(frame, kind, seg, st, ot):
     if kind == "main" and ot < HOOK_FX:
@@ -346,8 +409,8 @@ def draw_overlays(frame, kind, seg, st, ot):
         if a <= st <= b:
             p = cached(("tag", txt), lambda: pill(txt, size=46, bg=TEAL if "comment" not in txt else PINK))
             k = ease((st - a) / 0.2)
-            frame.alpha_composite(p, (int(-p.width + (60 + p.width) * k), 230)) if k >= 1 else \
-                safe_composite(frame, p, int(-p.width + (60 + p.width) * k), 230)
+            frame.alpha_composite(p, (int(-p.width + (60 + p.width) * k), 270)) if k >= 1 else \
+                safe_composite(frame, p, int(-p.width + (60 + p.width) * k), 270)
     # stickers
     for a, b, code, x, y, sz in STICKERS:
         if a <= st <= b:
@@ -356,6 +419,8 @@ def draw_overlays(frame, kind, seg, st, ot):
             paste_center(frame, emoji(code, sz), x, y + bob, pop_scale(st - a, 0.2), rot=rot)
     # captions
     for a, b, txt, emo in CAPS:
+        if ot < 0.6 and a < 0.01:
+            continue
         if a <= st < b:
             big = txt.startswith("*") and txt.endswith("*")
             img = cached(("cap", txt), lambda: text_block(txt, size=128 if big else 94, emo=emo,
@@ -413,12 +478,13 @@ def main():
         z, dx, dy = camera(kind, seg, st, ot)
         img = apply_camera(base, z, dx, dy).convert("RGBA")
         if ot < HOOK_FX:
-            for g0, g1 in ((0.0, 0.28), (0.45, 0.6), (1.6, 1.72), (2.82, 3.0)):
+            for g0, g1 in ((0.0, 0.12), (0.62, 0.72), (0.92, 1.05), (1.8, 1.9), (2.85, 3.0)):
                 if g0 <= ot < g1:
                     img = glitch(img, ot, 1.0 - 0.5 * (ot - g0) / (g1 - g0))
         draw_overlays(img, kind, seg, st, ot)
-        if ot < 0.12:
-            img.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(255 * (1 - ot / 0.12)))))
+        draw_logo(img)
+        if ot < 0.16:
+            img.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(235 * (1 - ot / 0.16)))))
         # white flash after hook
         if hook_len <= ot < hook_len + 0.15:
             al = int(230 * (1 - (ot - hook_len) / 0.15))

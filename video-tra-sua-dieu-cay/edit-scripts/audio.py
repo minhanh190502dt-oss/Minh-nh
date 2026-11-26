@@ -69,15 +69,16 @@ def place(buf, sig, t, gain=1.0):
 
 # ---------- SFX track ----------
 fx = np.zeros(N)
-# hook: impact, two slams, burst, banner, riser into the drop
-place(fx, sfx("boom"), 0.0, 1.0)
-place(fx, sfx("scratch"), 0.0, 0.8)
-place(fx, sfx("boom"), 0.15, 0.7)
-place(fx, sfx("pop"), 0.15, 1.0)
-place(fx, sfx("boom"), 0.45, 0.9)
-place(fx, sfx("whoosh"), 0.42, 1.0)
-place(fx, sfx("pop"), 1.35, 1.0)
-place(fx, sfx("tick"), 1.6, 1.0)
+# hook: rush-in whoosh, impact on "nè nè", title slams, burst
+place(fx, sfx("whoosh"), 0.0, 1.0)
+place(fx, sfx("boom"), 0.02, 1.0)
+place(fx, sfx("pop"), 0.10, 0.9)
+place(fx, sfx("boom"), 0.30, 0.6)
+place(fx, sfx("pop"), 0.62, 1.0)
+place(fx, sfx("boom"), 0.62, 0.6)
+place(fx, sfx("boom"), 0.92, 0.9)
+place(fx, sfx("whoosh"), 0.88, 1.0)
+place(fx, sfx("tick"), 1.8, 0.8)
 place(fx, riser(HOOK_FX - 1.3), 1.3, 0.35)
 place(fx, sfx("whoosh"), HOOK_FX - 0.3, 0.8)
 for t, k in SFX:
