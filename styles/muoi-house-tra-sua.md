@@ -41,6 +41,12 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
   "rồi cháu không nghe") thì KHÔNG gắn phụ đề, không thêm hiệu ứng.
 - Từ chuyên của quán: "bị complain" = bị khách phàn nàn/phản hồi (không phải "comment").
 
+## Logo
+- Luôn có logo **MUỐI HOUSE / TÂN HỒNG** góc trên bên trái (x=36, y=80) suốt video.
+- Hiện đang dùng huy hiệu chữ: nền teal `#146E68`, viền trắng, "MUỐI HOUSE" trắng + "TÂN HỒNG" vàng kem.
+  Khi chị gửi file logo gốc (PNG nền trong suốt) thì thay bằng logo thật.
+- Nhãn chạy ngang đặt ở y=270 (ngay dưới logo).
+
 ## Dựng & hiệu ứng
 - Cắt bỏ khoảng lặng; mỗi lần cắt xen kẽ zoom 1.0 / 1.07 cho đỡ đều.
 - Zoom giật (punch-in) ở câu nhấn mạnh; rung khung + chớp đỏ ở câu "drama" (vd "chắc chết").
