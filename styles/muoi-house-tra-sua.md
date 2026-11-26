@@ -37,6 +37,8 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
   một dòng, ví dụ: `biểu hiện của` / `SỰ CỐ CHẤP 😤`. Dùng ` | ` trong `timeline.py` để chủ động
   xuống dòng; script không bao giờ tách một cụm tô cam ra 2 dòng.
 - Thêm 1 emoji hợp nghĩa cuối câu.
+- **Chỉ sub lời thuộc nội dung video.** Câu chị nói với khách/người ngoài (vd "ủa chú ơi",
+  "rồi cháu không nghe") thì KHÔNG gắn phụ đề, không thêm hiệu ứng.
 - Từ chuyên của quán: "bị complain" = bị khách phàn nàn/phản hồi (không phải "comment").
 
 ## Dựng & hiệu ứng
