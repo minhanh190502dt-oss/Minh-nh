@@ -15,7 +15,9 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 - Chớp trắng + glitch (lệch màu RGB) ngay khung đầu, zoom giật mạnh (1.55x → 1.12x), rung khung.
 - Đường tốc độ kiểu anime (focus lines) dồn vào giữa + viền tối (vignette).
 - Tiêu đề 2 dòng ĐẬP vào màn hình (scale lớn → nhỏ, kèm "bùm"): dòng 1 trắng, dòng 2 cam có "?!".
-- Emoji bung tỏa từ giữa (🧋🔥😱💨), nhãn đỏ lắc lư kiểu "HÀNG HIẾM".
+- Emoji bung tỏa từ giữa (🧋🔥😱💨).
+- **KHÔNG tự bịa chữ quảng cáo/khẳng định về sản phẩm** (vd "HÀNG HIẾM", "BEST SELLER", giá, khuyến mãi…).
+  Chữ trên video chỉ lấy từ lời thoại của chị hoặc điều chị yêu cầu. Muốn thêm câu nào ngoài lời thoại thì hỏi chị trước.
 - Một dòng phụ nhỏ gợi tò mò + emoji 😭.
 - Âm thanh: boom + scratch mở đầu, pop mỗi lần chữ đập, riser dâng dần → drop vào nội dung chính.
 
