@@ -8,11 +8,13 @@ SP = "/tmp/claude-0/-home-user-Minh-nh/29b71c64-0cb4-5c97-be8e-a6ce7d01b2d8/scra
 SRC = f"{SP}/work/proxy.mp4"
 OUT = sys.argv[1] if len(sys.argv) > 1 else f"{SP}/work/video_only.mp4"
 PREVIEW = os.environ.get("PREVIEW")  # e.g. "3.0,12.5" -> write jpgs at those output times only
-FONT_BLACK = f"{SP}/fonts/BeVietnamPro-Black.ttf"
-FONT_XB = f"{SP}/fonts/BeVietnamPro-ExtraBold.ttf"
+FONT_BLACK = f"{SP}/fonts/Grandstander%5Bwght%5D.ttf"
+FONT_XB = f"{SP}/fonts/Grandstander%5Bwght%5D.ttf"
 EMO = f"{SP}/emoji"
-YELLOW = (255, 225, 60)
-PINK = (255, 92, 168)
+YELLOW = (255, 122, 26)   # brand-style orange highlight
+PINK = (255, 122, 26)
+TEAL = (20, 110, 104)
+TEAL_DARK = (9, 70, 66)
 
 # ---------- timeline mapping ----------
 hook_len = HOOK[1] - HOOK[0]
@@ -50,7 +52,12 @@ _font_cache = {}
 def font(path, size):
     k = (path, size)
     if k not in _font_cache:
-        _font_cache[k] = ImageFont.truetype(path, size)
+        f = ImageFont.truetype(path, size)
+        try:
+            f.set_variation_by_axes([900 if path == FONT_BLACK else 800])
+        except Exception:
+            pass
+        _font_cache[k] = f
     return _font_cache[k]
 
 _emo_cache = {}
@@ -108,8 +115,13 @@ def text_block(text, size=86, emo=None, max_w=960, fill=(255, 255, 255), hl_fill
         x = (Wd - lw) / 2
         y = stroke + li * lh
         for w, h, ww in L:
-            ds.text((x + 6, y + 8), w, font=f, fill=(0, 0, 0, 150), stroke_width=stroke, stroke_fill=(0, 0, 0, 150))
-            d.text((x, y), w, font=f, fill=hl_fill if h else fill, stroke_width=stroke, stroke_fill=(0, 0, 0))
+            inner = max(3, int(stroke * 0.55))
+            ds.text((x + 5, y + 8), w, font=f, fill=(0, 0, 0, 130), stroke_width=stroke, stroke_fill=(0, 0, 0, 130))
+            d.text((x, y), w, font=f, fill=TEAL_DARK, stroke_width=stroke, stroke_fill=TEAL_DARK)
+            if h:
+                d.text((x, y), w, font=f, fill=hl_fill, stroke_width=inner, stroke_fill=(255, 255, 255))
+            else:
+                d.text((x, y), w, font=f, fill=fill, stroke_width=0)
             x += ww + space
         if emo and li == len(lines) - 1:
             img.alpha_composite(emoji(emo, emo_sz), (int(x + 4), int(y - size * 0.12)))
@@ -239,7 +251,7 @@ def draw_overlays(frame, kind, seg, st, ot):
     # tags (top pill, slide in)
     for a, b, txt in TAGS:
         if a <= st <= b:
-            p = cached(("tag", txt), lambda: pill(txt, size=46, bg=(30, 30, 30) if "comment" not in txt else PINK))
+            p = cached(("tag", txt), lambda: pill(txt, size=46, bg=TEAL if "comment" not in txt else PINK))
             k = ease((st - a) / 0.2)
             frame.alpha_composite(p, (int(-p.width + (60 + p.width) * k), 230)) if k >= 1 else \
                 safe_composite(frame, p, int(-p.width + (60 + p.width) * k), 230)
@@ -253,7 +265,7 @@ def draw_overlays(frame, kind, seg, st, ot):
     for a, b, txt, emo in CAPS:
         if a <= st < b:
             big = txt.startswith("*") and txt.endswith("*")
-            img = cached(("cap", txt), lambda: text_block(txt, size=118 if big else 84, emo=emo,
+            img = cached(("cap", txt), lambda: text_block(txt, size=128 if big else 94, emo=emo,
                                                            stroke=12 if big else 10, upper=False))
             paste_center(frame, img, W / 2, CAP_Y, pop_scale(st - a, 0.16), rot=(-3 if big else 0))
             break
