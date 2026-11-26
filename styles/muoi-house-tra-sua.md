@@ -62,4 +62,16 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 - Giọng chị phải RÕ: lọc ồn quán mạnh (afftdn), cắt trầm 100Hz, tăng 3.2kHz (+5dB) cho trong,
   nén giọng, giọng to hơn nhạc rõ rệt.
 - Nhạc nền vui tự tạo (không bản quyền), nhỏ (≈0.13) và tự hạ khi chị nói (sidechain).
-- SFX: pop, ding, whoosh, boom, scratch, tick đặt ở điểm hài.
+- **QUY TẮC VÀNG (học từ video mẫu của kênh): CÁI GÌ HIỆN LÊN CŨNG PHẢI CÓ TIẾNG.**
+  Hiệu ứng nổi lên mà im re là không hấp dẫn. `audio.py` tự gắn tiếng theo `timeline.py`:
+  | Hiệu ứng hình | Tiếng đi kèm |
+  |---|---|
+  | Mỗi câu phụ đề nảy lên | "bụp/bloop" (xen kẽ 2 cao độ) |
+  | Câu toàn chữ cam to | bloop + "boing" lò xo |
+  | Câu có chữ cam | bloop + "ting" lấp lánh, kèm ngôi sao 4 cánh nhấp nháy quanh chữ |
+  | Emoji/sticker hiện ra | "boing" |
+  | Nhãn chạy ngang | "swoosh" + chữ hiện từng ký tự kiểu gõ phím (tiếng lách cách) + "ting" khi gõ xong |
+  | Mỗi lần chuyển cảnh | lia nhòe (whip zoom blur ~0.2s) + tiếng "vút" |
+  | Zoom giật | "thịch" trầm |
+  | Chớp đỏ / câu drama | "boom" lớn kiểu meme |
+  Tiếng hiệu ứng mix ở 0.6 (rõ nhưng không lấn giọng chị).
