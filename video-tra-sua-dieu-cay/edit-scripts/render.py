@@ -348,32 +348,37 @@ def draw_hook(frame, ot):
             wd = int(26 * (1 - rt / 0.5)) + 3
             al = int(255 * (1 - rt / 0.5))
             col = (255, 255, 255, al) if r0 != 0.10 else (255, 122, 26, al)
-            cx, cy = W / 2, 900
+            cx, cy = CAP_X, 900
             dr.ellipse((cx - rad, cy - rad, cx + rad, cy + rad), outline=col, width=wd)
             frame.alpha_composite(ring)
     # giant "NÈ NÈ!" (her opening words) centred
     if ot < 0.60:
-        nn = cached("nene", lambda: text_block("*NÈ NÈ!*", size=190, stroke=18, emo="1f440", max_w=1060))
+        nn = cached("nene", lambda: text_block("*NÈ NÈ!*", size=160, stroke=16, emo="1f440", max_w=760))
         a_ = 1.0 if ot < 0.5 else max(0, (0.6 - ot) / 0.1)
-        paste_center(frame, nn, W / 2, 900, slam_scale(ot - 0.02), alpha=a_, rot=-5)
+        paste_center(frame, nn, CAP_X, 900, slam_scale(ot - 0.02), alpha=a_, rot=-5)
     bt = ot - 0.92
     if 0 <= bt <= 1.3:
         for ang, spd, code, rot in BURST:
-            dist = spd * (1 - (1 - min(bt, 0.8) / 0.8) ** 2) * 0.55
-            x = W / 2 + dist * math.cos(ang); y = H * 0.45 + dist * math.sin(ang) * 1.2
+            dist = spd * (1 - (1 - min(bt, 0.8) / 0.8) ** 2) * 0.38
+            x = W / 2 + dist * math.cos(ang); x = min(max(x, SAFE_L + 60), SAFE_R_LOW - 60); y = H * 0.45 + dist * math.sin(ang) * 1.1
             al = 1.0 if bt < 0.9 else max(0, 1 - (bt - 0.9) / 0.4)
             paste_center(frame, emoji(code, 150), x, y, 0.6 + 0.6 * min(1, bt / 0.3), alpha=al, rot=rot * bt)
-    t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=165, stroke=15, max_w=1040))
-    t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=175, stroke=17, max_w=1060))
+    t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=145, stroke=14, max_w=820))
+    t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=145, stroke=15, max_w=820))
     fade = 1.0 if ot < HOOK_FX - 0.3 else max(0.0, (HOOK_FX - ot) / 0.3)
-    paste_center(frame, t1, W / 2, 500, slam_scale(ot - 0.62), alpha=fade, rot=-4)
+    paste_center(frame, t1, W / 2, 520, slam_scale(ot - 0.62), alpha=fade, rot=-4)
     paste_center(frame, t2, W / 2, 710, slam_scale(ot - 0.92), alpha=fade, rot=3)
     bob = math.sin(ot * 9) * 12
-    paste_center(frame, emoji("1f9cb", 200), 140, 380 + bob, pop_scale(ot - 1.2, 0.2), alpha=fade, rot=12)
-    paste_center(frame, emoji("1f525", 190), 930, 300 - bob, pop_scale(ot - 1.25, 0.2), alpha=fade, rot=-10)
+    paste_center(frame, emoji("1f9cb", 170), 190, 380 + bob, pop_scale(ot - 1.2, 0.2), alpha=fade, rot=12)
+    paste_center(frame, emoji("1f525", 160), 870, 360 - bob, pop_scale(ot - 1.25, 0.2), alpha=fade, rot=-10)
 
 # ---------- overlays ----------
-CAP_Y = 1300
+# TikTok safe zone (1080x1920): top search bar ends ~y=230, bottom name/caption starts ~y=1400,
+# right action buttons occupy x>=920 from y~860 down, keep >=90px from both side edges.
+SAFE_L, SAFE_R_TOP, SAFE_R_LOW, SAFE_T, SAFE_B = 90, 980, 900, 240, 1380
+CAP_X = 500          # captions centred slightly left so they clear the right button column
+CAP_MAXW = 760
+CAP_Y = 1180
 
 LOGO_ALPHA = 0.55
 
@@ -435,7 +440,7 @@ def draw_sparkles(frame, cw, ch, dt, seed):
     rnd = random.Random(seed)
     for i in range(3):
         side = -1 if i % 2 == 0 else 1
-        x = W / 2 + side * (cw / 2 + rnd.uniform(-30, 20))
+        x = CAP_X + side * (cw / 2 + rnd.uniform(-40, 0))
         y = CAP_Y + rnd.uniform(-ch / 2 - 20, ch / 2)
         t0 = 0.05 + i * 0.08
         if dt < t0:
@@ -448,7 +453,7 @@ def draw_sparkles(frame, cw, ch, dt, seed):
 
 def draw_logo(frame):
     lg = cached("logo", logo_badge)
-    frame.alpha_composite(lg, (40, 90))
+    frame.alpha_composite(lg, (SAFE_L, 245))
 
 def draw_overlays(frame, kind, seg, st, ot):
     if kind == "main" and ot < HOOK_FX:
@@ -463,9 +468,9 @@ def draw_overlays(frame, kind, seg, st, ot):
         paste_center(frame, b, W / 2, 880, pop_scale(et - 0.15, 0.22), rot=-2)
         paste_center(frame, c, W / 2, 1080, pop_scale(et - 0.35, 0.2))
         bounce = abs(math.sin(et * 6)) * 40
-        paste_center(frame, emoji("1f447", 200), W / 2, 1300 + bounce, pop_scale(et - 0.5, 0.2))
-        paste_center(frame, emoji("1f9cb", 220), 170, 470, pop_scale(et - 0.25, 0.2), rot=10)
-        paste_center(frame, emoji("1f923", 200), 900, 480, pop_scale(et - 0.35, 0.2), rot=-10)
+        paste_center(frame, emoji("1f447", 170), W / 2, 1240 + bounce, pop_scale(et - 0.5, 0.2))
+        paste_center(frame, emoji("1f9cb", 180), 200, 520, pop_scale(et - 0.25, 0.2), rot=10)
+        paste_center(frame, emoji("1f923", 170), 860, 520, pop_scale(et - 0.35, 0.2), rot=-10)
         return
     # tags (top pill, slide in)
     for a, b, txt in TAGS:
@@ -479,8 +484,8 @@ def draw_overlays(frame, kind, seg, st, ot):
             k = ease((st - a) / 0.2)
             if st - a < 0.2:
                 p = cached(("tagtw", txt, 0), lambda: pill_tw(full, 0, bg))
-            frame.alpha_composite(p, (int(-p.width + (60 + p.width) * k), 270)) if k >= 1 else \
-                safe_composite(frame, p, int(-p.width + (60 + p.width) * k), 270)
+            frame.alpha_composite(p, (int(-p.width + (SAFE_L + p.width) * k), 380)) if k >= 1 else \
+                safe_composite(frame, p, int(-p.width + (SAFE_L + p.width) * k), 380)
     # stickers
     for a, b, code, x, y, sz in STICKERS:
         if a <= st <= b:
@@ -493,9 +498,9 @@ def draw_overlays(frame, kind, seg, st, ot):
             continue
         if a <= st < b:
             big = txt.startswith("*") and txt.endswith("*")
-            img = cached(("cap", txt), lambda: text_block(txt, size=128 if big else 94, emo=emo,
+            img = cached(("cap", txt), lambda: text_block(txt, size=112 if big else 86, emo=emo, max_w=CAP_MAXW,
                                                            stroke=12 if big else 10, upper=False))
-            paste_center(frame, img, W / 2, CAP_Y, pop_scale(st - a, 0.16), rot=(-3 if big else 0))
+            paste_center(frame, img, CAP_X, CAP_Y, pop_scale(st - a, 0.16), rot=(-3 if big else 0))
             if "*" in txt:
                 draw_sparkles(frame, img.width, img.height, st - a, hash(txt))
             break
