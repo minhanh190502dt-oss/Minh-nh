@@ -368,24 +368,42 @@ def draw_hook(frame, ot):
 # ---------- overlays ----------
 CAP_Y = 1300
 
+LOGO_ALPHA = 0.55
+
+def _spaced(d, xy, text, f, fill, spacing):
+    x, y = xy
+    for ch in text:
+        d.text((x, y), ch, font=f, fill=fill)
+        x += f.getlength(ch) + spacing
+
+def _spaced_w(text, f, spacing):
+    return sum(f.getlength(c) for c in text) + spacing * (len(text) - 1)
+
 def logo_badge():
-    """Text badge 'MUỐI HOUSE / TÂN HỒNG' in brand teal (placeholder until real logo file is provided)."""
-    f1 = font(FONT_BLACK, 54); f2 = font(FONT_BLACK, 46)
-    t1, t2 = "MUỐI HOUSE", "TÂN HỒNG"
-    w = int(max(f1.getlength(t1), f2.getlength(t2)) + 60)
-    h = 168
-    img = Image.new("RGBA", (w + 10, h + 12), (0, 0, 0, 0))
+    """Subtle wordmark: MUỐI HOUSE / thin line / TÂN HỒNG, white, semi-transparent."""
+    f1 = ImageFont.truetype(f"{SP}/fonts/BeVietnamPro-SemiBold.ttf", 38)
+    f2 = ImageFont.truetype(f"{SP}/fonts/BeVietnamPro-Light.ttf", 24)
+    t1, t2, s1, s2 = "MUỐI HOUSE", "TÂN HỒNG", 5, 9
+    w1, w2 = _spaced_w(t1, f1, s1), _spaced_w(t2, f2, s2)
+    w = int(max(w1, w2)) + 20
+    h = 120
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((6, 9, w + 6, h + 9), radius=34, fill=(0, 0, 0, 110))
-    d.rounded_rectangle((0, 0, w, h), radius=34, fill=TEAL + (240,), outline=(255, 255, 255), width=5)
-    for txt, f, y, col in ((t1, f1, 58, (255, 255, 255)), (t2, f2, 122, (255, 214, 120))):
-        bb = d.textbbox((0, 0), txt, font=f, anchor="ms")
-        d.text((w / 2, y + 8), txt, font=f, fill=col, anchor="ms")
-    return img
+    sh = Image.new("RGBA", (w, h), (0, 0, 0, 0)); ds = ImageDraw.Draw(sh)
+    for dd, col in ((ds, (0, 0, 0, 160)), (d, (255, 255, 255, 255))):
+        off = 2 if dd is ds else 0
+        _spaced(dd, ((w - w1) / 2 + off, 14 + off), t1, f1, col, s1)
+        dd.line(((w - w2) / 2 + off, 72 + off, (w + w2) / 2 + off, 72 + off), fill=col, width=2)
+        _spaced(dd, ((w - w2) / 2 + off, 80 + off), t2, f2, col, s2)
+    sh = sh.filter(ImageFilter.GaussianBlur(3))
+    sh.alpha_composite(img)
+    a = sh.getchannel("A").point(lambda v: int(v * LOGO_ALPHA))
+    sh.putalpha(a)
+    return sh
 
 def draw_logo(frame):
     lg = cached("logo", logo_badge)
-    frame.alpha_composite(lg, (36, 80))
+    frame.alpha_composite(lg, (40, 90))
 
 def draw_overlays(frame, kind, seg, st, ot):
     if kind == "main" and ot < HOOK_FX:
