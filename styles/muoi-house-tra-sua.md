@@ -13,7 +13,10 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 ## 3 giây đầu (HOOK) — bắt buộc phải thật hút mắt, không được nhạt
 - **Video mở đầu NGAY bằng giọng chị** (câu đầu tiên chị nói, vd "Nè nè!") — KHÔNG chèn đoạn teaser im lặng.
   Hiệu ứng hook được đè lên 3 giây đầu trong lúc chị đang nói.
-- Chớp trắng + glitch (lệch màu RGB) ngay khung đầu, zoom giật mạnh (1.55x → 1.12x), rung khung.
+- Hiệu ứng show mở đầu: khung hình **lao vào từ xa** (zoom 2.3x → 1.12x trong 0.32s) **vừa xoay (-16°) vừa nhòe chuyển động**,
+  chớp trắng mạnh, glitch lệch màu RGB, tiếng whoosh + boom.
+- Câu đầu tiên của chị (vd "NÈ NÈ!") hiện **CỰC TO giữa màn hình**, đập vào + **vòng sóng xung kích** trắng/cam lan ra theo nhịp từng chữ.
+- Sau đó (~0.6s) mới đập tiêu đề ở phía trên.
 - Đường tốc độ kiểu anime (focus lines) dồn vào giữa + viền tối (vignette).
 - Tiêu đề 2 dòng ĐẬP vào màn hình (scale lớn → nhỏ, kèm "bùm"): dòng 1 trắng, dòng 2 cam có "?!".
 - Emoji bung tỏa từ giữa (🧋🔥😱💨).
