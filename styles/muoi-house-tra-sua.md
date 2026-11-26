@@ -45,9 +45,11 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 - Từ chuyên của quán: "bị complain" = bị khách phàn nàn/phản hồi (không phải "comment").
 
 ## Logo
-- Luôn có logo **MUỐI HOUSE / TÂN HỒNG** góc trên bên trái (x=36, y=80) suốt video.
-- Hiện đang dùng huy hiệu chữ: nền teal `#146E68`, viền trắng, "MUỐI HOUSE" trắng + "TÂN HỒNG" vàng kem.
-  Khi chị gửi file logo gốc (PNG nền trong suốt) thì thay bằng logo thật.
+- Luôn có logo **MUỐI HOUSE / TÂN HỒNG** góc trên bên trái (x=40, y=90) suốt video.
+- Logo phải **MỜ, TINH TẾ** — vẫn thấy nhưng không thô, KHÔNG dùng khung/nền màu dày.
+  Hiện tại: chữ trắng mảnh (Be Vietnam Pro SemiBold "MUỐI HOUSE" + đường kẻ mảnh + Light "TÂN HỒNG",
+  giãn chữ), bóng mờ nhẹ, độ trong suốt ~55%.
+  Khi chị gửi file logo gốc (PNG nền trong suốt) thì thay bằng logo thật, vẫn để mờ ~55%.
 - Nhãn chạy ngang đặt ở y=270 (ngay dưới logo).
 
 ## Dựng & hiệu ứng
