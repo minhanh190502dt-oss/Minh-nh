@@ -12,5 +12,6 @@ Nếu không rõ video thuộc bên nào thì hỏi chị.
 ## Lưu ý chung
 - Phụ đề phải khớp đúng lời thoại; câu nghe không rõ thì hỏi lại chị.
 - Không để chữ bị mất dấu, không ngắt dòng ngang xương giữa cụm từ.
+- KHÔNG để chữ/sticker sát mép: luôn nằm trong vùng an toàn TikTok (xem mục "VÙNG AN TOÀN" trong file phong cách).
 - 3 giây đầu luôn phải có hook thật hút mắt — bằng HIỆU ỨNG (zoom, glitch, chữ đập, emoji), không phải bằng chữ tự bịa.
 - KHÔNG tự thêm chữ quảng cáo/khẳng định về sản phẩm (vd "HÀNG HIẾM"). Chỉ dùng lời thoại của chị hoặc điều chị yêu cầu; muốn thêm gì thì hỏi trước.

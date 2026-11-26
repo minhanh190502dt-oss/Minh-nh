@@ -10,6 +10,16 @@ Muốn làm video mới: copy `edit-scripts/`, chỉ cần sửa `timeline.py` (
 - Video dọc **9:16, 1080x1920, 30fps**, âm lượng chuẩn TikTok/Reels (-14 LUFS).
 - Vibe: vui, Gen Z, nói kiểu miền Tây/miền Nam thân thiện ("mấy bà", "hông", "nha").
 
+## VÙNG AN TOÀN TIKTOK — BẮT BUỘC (chị từng đăng bị mất chữ vì chữ sát mép)
+Khung 1080x1920. Mọi chữ, logo, sticker phải nằm TRONG vùng an toàn:
+- **Trên:** y ≥ 240 (thanh "Tìm kiếm" che phía trên).
+- **Dưới:** y ≤ 1380 (tên kênh, caption, thanh quảng bá che phía dưới).
+- **Phải:** x ≤ 900 từ y=860 trở xuống (cột tim/bình luận/lưu); phía trên x ≤ 980.
+- **Trái:** x ≥ 90.
+- Phụ đề: tâm x=500 (lệch trái né cột nút), y=1180, rộng tối đa 760px, chữ 86 (to 112).
+- Tiêu đề hook rộng tối đa ~820px; logo đặt (90, 245); nhãn chạy ngang y=380.
+- Trước khi gửi: render vài khung, phủ các vùng TikTok che lên để kiểm tra không có chữ nào bị đè/cắt.
+
 ## 3 giây đầu (HOOK) — bắt buộc phải thật hút mắt, không được nhạt
 - **Video mở đầu NGAY bằng giọng chị** (câu đầu tiên chị nói, vd "Nè nè!") — KHÔNG chèn đoạn teaser im lặng.
   Hiệu ứng hook được đè lên 3 giây đầu trong lúc chị đang nói.
