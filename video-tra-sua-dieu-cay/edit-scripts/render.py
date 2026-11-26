@@ -207,6 +207,8 @@ def ease(x):
 # ---------- camera ----------
 def camera(kind, seg, st, ot):
     z = 1.0
+    if kind == "main" and ot < HOOK_FX:
+        kind = "hook"
     if kind == "main":
         z = 1.0 if seg % 2 == 0 else 1.07   # jump-cut zoom alternation
         for a, b, zz in ZOOMS:
@@ -217,7 +219,7 @@ def camera(kind, seg, st, ot):
     elif kind == "hook":
         # violent punch-in on open, then slow push
         z = 1.55 - 0.43 * ease(ot / 0.35)
-        z += 0.12 * max(0.0, ot - 0.35) / (hook_len - 0.35)
+        z += 0.12 * max(0.0, ot - 0.35) / (HOOK_FX - 0.35)
         for t0 in (0.15, 0.45):   # micro bumps on each title slam
             if t0 <= ot < t0 + 0.15:
                 z += 0.08 * (1 - (ot - t0) / 0.15)
@@ -312,21 +314,19 @@ def draw_hook(frame, ot):
             paste_center(frame, emoji(code, 150), x, y, 0.6 + 0.6 * min(1, bt / 0.3), alpha=al, rot=rot * bt)
     t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=165, stroke=15, max_w=1040))
     t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=175, stroke=17, max_w=1060))
-    t3 = cached("h3", lambda: text_block("nhập về bán có nổi hông đây", size=66, emo="1f62d", stroke=9, max_w=1000))
-    paste_center(frame, t1, W / 2, 640, slam_scale(ot - 0.15), rot=-4)
-    paste_center(frame, t2, W / 2, 860, slam_scale(ot - 0.45), rot=3)
-    paste_center(frame, t3, W / 2, 1090, pop_scale(ot - 1.35, 0.2))
+    fade = 1.0 if ot < HOOK_FX - 0.3 else max(0.0, (HOOK_FX - ot) / 0.3)
+    paste_center(frame, t1, W / 2, 500, slam_scale(ot - 0.15), alpha=fade, rot=-4)
+    paste_center(frame, t2, W / 2, 710, slam_scale(ot - 0.45), alpha=fade, rot=3)
     bob = math.sin(ot * 9) * 12
-    paste_center(frame, emoji("1f9cb", 240), 150, 300 + bob, pop_scale(ot - 1.2, 0.2), rot=12)
-    paste_center(frame, emoji("1f525", 200), 930, 310 - bob, pop_scale(ot - 1.25, 0.2), rot=-10)
+    paste_center(frame, emoji("1f9cb", 220), 150, 290 + bob, pop_scale(ot - 1.2, 0.2), alpha=fade, rot=12)
+    paste_center(frame, emoji("1f525", 190), 930, 300 - bob, pop_scale(ot - 1.25, 0.2), alpha=fade, rot=-10)
 
 # ---------- overlays ----------
 CAP_Y = 1300
 
 def draw_overlays(frame, kind, seg, st, ot):
-    if kind == "hook":
+    if kind == "main" and ot < HOOK_FX:
         draw_hook(frame, ot)
-        return
     if kind == "end":
         et = ot - MAIN_END
         frame.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 130)))
@@ -412,7 +412,7 @@ def main():
             continue
         z, dx, dy = camera(kind, seg, st, ot)
         img = apply_camera(base, z, dx, dy).convert("RGBA")
-        if kind == "hook":
+        if ot < HOOK_FX:
             for g0, g1 in ((0.0, 0.28), (0.45, 0.6), (1.6, 1.72), (2.82, 3.0)):
                 if g0 <= ot < g1:
                     img = glitch(img, ot, 1.0 - 0.5 * (ot - g0) / (g1 - g0))

@@ -78,9 +78,8 @@ place(fx, sfx("boom"), 0.45, 0.9)
 place(fx, sfx("whoosh"), 0.42, 1.0)
 place(fx, sfx("pop"), 1.35, 1.0)
 place(fx, sfx("tick"), 1.6, 1.0)
-place(fx, riser(R.hook_len - 1.3), 1.3, 0.9)
-place(fx, sfx("whoosh"), R.hook_len - 0.3, 1.0)
-place(fx, sfx("boom"), R.hook_len, 0.9)
+place(fx, riser(HOOK_FX - 1.3), 1.3, 0.35)
+place(fx, sfx("whoosh"), HOOK_FX - 0.3, 0.8)
 for t, k in SFX:
     place(fx, sfx(k), R.s2o(t), 0.9)
 place(fx, sfx("whoosh"), R.MAIN_END - 0.2, 1.0)
@@ -139,11 +138,11 @@ save(f"{W}/music.wav", mus[: int(TOTAL * SR)])
 
 # ---------- voice track (ffmpeg trims + concat) ----------
 parts, labels = [], []
-segs = [HOOK] + SEGMENTS
+segs = SEGMENTS
 fc = []
 for i, (a, b) in enumerate(segs):
-    vol = 0.2 if i == 0 else 1.0
-    pad = f",apad=whole_dur={HOOK_LEN},atrim=0:{HOOK_LEN}" if i == 0 else ""
+    vol = 1.0
+    pad = ""
     fc.append(f"[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,afade=t=out:st={b-a-0.03:.3f}:d=0.03,volume={vol}{pad}[a{i}]")
     labels.append(f"[a{i}]")
 fc.append("".join(labels) + f"concat=n={len(segs)}:v=0:a=1,highpass=f=100,lowpass=f=10000,afftdn=nr=20:nf=-30:tn=1,"

@@ -48,8 +48,6 @@ CAPS = [
     (35.04, 36.22, "ê nhưng mà | mọi người thích", None),
     (36.22, 37.40, "thì có *NÊN NHẬP* | không ta?", "1f914"),
     (38.24, 38.90, "*NÊN NHẬP KHÔNG?*", None),
-    (38.96, 39.55, "ủa chú ơi", "1f972"),
-    (41.26, 42.60, "rồi... cháu | *KHÔNG NGHE*", "1f649"),
 ]
 
 # Punch-in zooms: (src_start, src_end, zoom)
@@ -66,7 +64,6 @@ ZOOMS = [
     (29.14, 30.10, 1.10),
     (32.86, 34.20, 1.18),
     (38.24, 38.90, 1.15),
-    (41.26, 42.60, 1.10),
 ]
 # Camera shakes: (src_time, duration, amplitude px)
 SHAKES = [
@@ -77,7 +74,6 @@ SHAKES = [
 ]
 # Extra floating stickers: (src_start, src_end, emoji, x, y, size)
 STICKERS = [
-    (2.78, 4.98, "1f9cb", 820, 330, 230),
     (9.86, 11.00, "1f4e6", 140, 380, 200),
     (11.00, 11.66, "1f631", 800, 360, 260),
     (14.56, 15.66, "1f4b8", 160, 360, 210),
@@ -85,7 +81,6 @@ STICKERS = [
     (23.82, 24.70, "1f480", 760, 330, 280),
     (29.14, 30.10, "2728", 150, 420, 200),
     (32.86, 34.20, "1f624", 820, 360, 230),
-    (41.26, 42.60, "1f923", 820, 360, 240),
 ]
 # Side tags: (src_start, src_end, text)
 TAGS = [
@@ -98,12 +93,13 @@ TAGS = [
 FLASHES = [(23.82, 0.25)]
 # Sound effects: (src_time, kind) ; kind in pop, whoosh, ding, boom, scratch, tick
 SFX = [
-    (0.02, "pop"), (2.78, "ding"), (3.98, "pop"), (8.46, "whoosh"),
+    (2.78, "ding"), (3.98, "pop"), (8.46, "whoosh"),
     (9.86, "pop"), (11.00, "boom"), (13.32, "tick"), (14.56, "ding"),
     (19.66, "pop"), (20.36, "tick"), (23.82, "boom"), (25.18, "whoosh"), (26.20, "pop"),
     (29.14, "ding"), (30.52, "pop"), (32.86, "scratch"), (36.22, "pop"),
-    (38.24, "whoosh"), (41.26, "scratch"),
+    (38.24, "whoosh"),
 ]
 
 # Hook (first 3 seconds) length in the output; the hook clip freezes on its last frame if shorter
-HOOK_LEN = 3.0
+HOOK_LEN = 0.0   # no silent teaser: video opens straight on her voice
+HOOK_FX = 3.0    # hook effects are layered over the first 3s of speech
