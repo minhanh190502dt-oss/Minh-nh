@@ -74,3 +74,13 @@ Từ nay, mỗi khi edit daily vlog cho chị, làm theo đúng các mục dư�
 - `fonts/`: Mont SB, Mont XB, Play It (+ Baloo 2, Pacifico). Copy vào `~/.fonts` rồi chạy `fc-cache -f`.
 - `sfx/`: các hiệu ứng âm thanh tự tạo (whoosh, pop, ding, boom, boing, slurp, click, zap, tada, swish, sparkle, shutter, riser).
 - `assets/headmask.png`: mặt nạ elip cho hiệu ứng đầu to.
+
+## 9. Ảnh bìa (cover)
+- 1080×1920, chọn khung hình **mặt chị đẹp và rõ** (selfie, hoặc cảnh vui như bưng đồ ăn).
+- Chữ theo phong cách pastel, đặt ở nửa dưới, nằm trong vùng an toàn 3:4 (y khoảng 950–1500):
+  - dòng nghiêng *Play It*, ví dụ "lên Sài Gòn để"
+  - chữ to **Mont XB** xanh pastel, ví dụ "GIẢI NGỐ"
+  - dòng phụ hồng pastel
+  - nhãn vàng bo tròn gây tò mò, ví dụ "cuối clip bật mí em học gì"
+  - vài ✦ lấp lánh
+- Làm tối nhẹ nửa dưới để chữ dễ đọc. Script: `scripts/cover.py <khung.png> <out.png>`. Gửi 2 mẫu để chị chọn.
