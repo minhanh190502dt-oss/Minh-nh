@@ -310,11 +310,6 @@ def draw_hook(frame, ot):
             x = W / 2 + dist * math.cos(ang); y = H * 0.45 + dist * math.sin(ang) * 1.2
             al = 1.0 if bt < 0.9 else max(0, 1 - (bt - 0.9) / 0.4)
             paste_center(frame, emoji(code, 150), x, y, 0.6 + 0.6 * min(1, bt / 0.3), alpha=al, rot=rot * bt)
-    # banner "HÀNG HIẾM"
-    ban = cached("ban", lambda: pill("HÀNG HIẾM 🔥".replace(" 🔥",""), size=88, bg=(230, 40, 50)))
-    if ot >= 1.0:
-        wob = math.sin((ot - 1.0) * 12) * 4
-        paste_center(frame, ban, W / 2, 440, slam_scale(ot - 1.0), rot=-7 + wob)
     t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=165, stroke=15, max_w=1040))
     t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=175, stroke=17, max_w=1060))
     t3 = cached("h3", lambda: text_block("nhập về bán có nổi hông đây", size=66, emo="1f62d", stroke=9, max_w=1000))
