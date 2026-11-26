@@ -22,7 +22,61 @@ def sweep(f0, f1, dur):
 def lp(x, k):
     return np.convolve(x, np.ones(k) / k, mode="same")
 
+def bandsweep_noise(dur, f0, f1, bw=0.35):
+    """noise whose passband sweeps f0->f1 (block-wise FFT filter, no scipy)"""
+    n = int(dur * SR); x = rng.standard_normal(n); out = np.zeros(n)
+    blk = 1024
+    for i in range(0, n, blk // 2):
+        seg = x[i:i + blk]
+        if len(seg) < 16: break
+        win = np.hanning(len(seg))
+        X = np.fft.rfft(seg * win); fr = np.fft.rfftfreq(len(seg), 1 / SR)
+        fc = f0 * (f1 / f0) ** (i / n)
+        X *= np.exp(-0.5 * (np.log(np.maximum(fr, 1) / fc) / bw) ** 2)
+        out[i:i + len(seg)] += np.fft.irfft(X, len(seg))
+    return out / (np.abs(out).max() + 1e-9)
+
 def sfx(kind):
+    if kind == "bubble":      # bouncy text pop: quick upward "bloop" + click
+        n = int(0.11 * SR)
+        s = sweep(380, 1500, 0.11) * env(n, 0.002, 0.035)
+        click = np.zeros(n); click[:60] = rng.standard_normal(60) * np.linspace(1, 0, 60)
+        return 0.75 * s + 0.35 * click
+    if kind == "bubble2":     # slightly lower variant for alternation
+        n = int(0.11 * SR)
+        return 0.75 * sweep(300, 1100, 0.11) * env(n, 0.002, 0.035)
+    if kind == "boing":       # cartoon spring for stickers
+        n = int(0.42 * SR); t = np.arange(n) / SR
+        f = 260 + 220 * np.exp(-t * 6) * np.sin(2 * np.pi * 18 * t) + 140 * t
+        return 0.6 * np.sin(2 * np.pi * np.cumsum(f) / SR) * env(n, 0.003, 0.16)
+    if kind == "whip":        # whip-pan whoosh for cuts
+        s = bandsweep_noise(0.32, 500, 6000)
+        n = len(s); t = np.arange(n) / SR
+        return 0.85 * s * np.sin(np.pi * t / t[-1]) ** 1.5
+    if kind == "swoosh":      # tag sliding in
+        s = bandsweep_noise(0.25, 2500, 900)
+        n = len(s); t = np.arange(n) / SR
+        return 0.55 * s * np.sin(np.pi * t / t[-1]) ** 2
+    if kind == "type":        # one keyboard tick
+        n = int(0.03 * SR); t = np.arange(n) / SR
+        c = rng.standard_normal(n) * env(n, 0.0003, 0.004)
+        return 0.6 * (c + 0.5 * np.sin(2 * np.pi * 1800 * t) * env(n, 0.0003, 0.006))
+    if kind == "sparkle":     # twinkle "ting" with shimmer for stars
+        n = int(0.7 * SR); t = np.arange(n) / SR
+        x = np.zeros(n)
+        for k, f in enumerate((2637, 3520, 4186, 5274)):
+            o = int(k * 0.035 * SR)
+            x[o:] += np.sin(2 * np.pi * f * t[: n - o]) * env(n - o, 0.001, 0.18) * (0.9 - 0.15 * k)
+        return 0.35 * x
+    if kind == "thump":       # punch-in zoom
+        n = int(0.18 * SR)
+        return 0.8 * sweep(140, 60, 0.18) * env(n, 0.002, 0.05)
+    if kind == "vineboom":    # big dramatic boom
+        n = int(1.3 * SR); t = np.arange(n) / SR
+        s = np.sin(2 * np.pi * np.cumsum(70 * np.exp(-t * 1.2) + 40) / SR)
+        s = np.tanh(3 * s) * env(n, 0.002, 0.45)
+        click = np.zeros(n); click[:200] = rng.standard_normal(200) * np.linspace(1, 0, 200)
+        return 0.9 * s + 0.4 * click
     if kind == "pop":
         return 0.7 * sweep(1200, 320, 0.09) * env(int(0.09 * SR), 0.002, 0.03)
     if kind == "ding":
@@ -81,8 +135,42 @@ place(fx, sfx("whoosh"), 0.88, 1.0)
 place(fx, sfx("tick"), 1.8, 0.8)
 place(fx, riser(HOOK_FX - 1.3), 1.3, 0.35)
 place(fx, sfx("whoosh"), HOOK_FX - 0.3, 0.8)
-for t, k in SFX:
-    place(fx, sfx(k), R.s2o(t), 0.9)
+# ---- automatic "everything that appears makes a sound" (like the reference video) ----
+events = []
+for i, (a, b, txt, emo) in enumerate(CAPS):
+    big = txt.startswith("*") and txt.endswith("*")
+    has_hl = "*" in txt
+    events.append((R.s2o(a), "bubble" if i % 2 == 0 else "bubble2", 0.75))
+    if big:
+        events.append((R.s2o(a), "boing", 0.45))
+    elif has_hl:
+        events.append((R.s2o(a) + 0.05, "sparkle", 0.45))
+for a, b, code, x, y, sz in STICKERS:
+    events.append((R.s2o(a), "boing", 0.7))
+for a, b, txt in TAGS:
+    o = R.s2o(a)
+    events.append((o, "swoosh", 0.8))
+    nchar = len(txt.replace("*", ""))
+    for c in range(0, nchar, 2):             # typewriter ticks
+        events.append((o + 0.22 + c * TYPE_CPS_DT, "type", 0.55))
+    events.append((o + 0.22 + nchar * TYPE_CPS_DT, "sparkle", 0.5))
+for off in R.offsets[1:]:                   # whip whoosh on every cut
+    events.append((off - 0.12, "whip", 0.8))
+for a, b, zz in ZOOMS:
+    events.append((R.s2o(a), "thump", 0.6))
+for t0, dur in FLASHES:
+    events.append((R.s2o(t0), "vineboom", 0.9))
+for t, k in SFX:                            # hand-placed accents
+    events.append((R.s2o(t), k, 0.7))
+events.sort()
+last = {}
+for t, k, g in events:
+    if t < HOOK_FX - 0.05 and k in ("bubble", "bubble2", "thump"):
+        continue                            # hook already has its own sound design
+    if k in last and t - last[k] < 0.08:
+        continue
+    last[k] = t
+    place(fx, sfx(k), max(0.0, t), g)
 place(fx, sfx("whoosh"), R.MAIN_END - 0.2, 1.0)
 place(fx, sfx("ding"), R.MAIN_END + 0.15, 0.9)
 place(fx, sfx("pop"), R.MAIN_END + 0.5, 1.0)

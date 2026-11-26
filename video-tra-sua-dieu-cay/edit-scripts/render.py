@@ -239,6 +239,13 @@ def camera(kind, seg, st, ot):
     global CUR_SPIN, CUR_BLUR
     CUR_SPIN = -16 * (1 - ease(ot / 0.32)) if kind == "hook" and ot < 0.32 else 0.0
     CUR_BLUR = (1 - ot / 0.32) if kind == "hook" and ot < 0.32 else 0.0
+    if kind == "main":
+        for off in offsets[1:]:              # whip-zoom transition on every cut
+            dcut = abs(ot - off)
+            if dcut < 0.1 and ot >= HOOK_FX:
+                k = 1 - dcut / 0.1
+                CUR_BLUR = max(CUR_BLUR, 0.9 * k)
+                z *= 1 + 0.12 * k
     if (dx or dy) and z < 1.06:
         z = 1.06
     return z, dx, dy
@@ -401,6 +408,44 @@ def logo_badge():
     sh.putalpha(a)
     return sh
 
+def pill_tw(full, nshow, bg):
+    """typewriter pill: full-width pill, only the first nshow characters drawn"""
+    f = font(FONT_XB, 46)
+    tw = f.getlength(full)
+    pad_x, pad_y = 30, 16
+    Wd, Hd = int(tw + 2 * pad_x), int(46 * 1.7 + 2 * pad_y)
+    img = Image.new("RGBA", (Wd + 12, Hd + 12), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle((8, 10, Wd + 8, Hd + 10), radius=Hd // 2, fill=(0, 0, 0, 140))
+    d.rounded_rectangle((0, 0, Wd, Hd), radius=Hd // 2, fill=bg + (255,))
+    bb = d.textbbox((0, 0), full, font=f)
+    d.text((pad_x, (Hd - (bb[3] - bb[1])) / 2 - bb[1]), full[:nshow], font=f, fill=(255, 255, 255))
+    return img
+
+def star(size, color):
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img); c = size / 2; r = size / 2; q = size * 0.12
+    d.polygon([(c, 0), (c + q, c - q), (size, c), (c + q, c + q), (c, size), (c - q, c + q), (0, c), (c - q, c - q)], fill=color)
+    return img.filter(ImageFilter.GaussianBlur(0.6))
+
+def draw_sparkles(frame, cw, ch, dt, seed):
+    """twinkling 4-point stars around a highlighted caption (like the reference)"""
+    if dt > 1.4:
+        return
+    rnd = random.Random(seed)
+    for i in range(3):
+        side = -1 if i % 2 == 0 else 1
+        x = W / 2 + side * (cw / 2 + rnd.uniform(-30, 20))
+        y = CAP_Y + rnd.uniform(-ch / 2 - 20, ch / 2)
+        t0 = 0.05 + i * 0.08
+        if dt < t0:
+            continue
+        tw = abs(math.sin((dt - t0) * 9 + i))
+        sz = int(50 + 40 * tw)
+        col = (255, 255, 255, 255) if i != 1 else (255, 214, 120, 255)
+        paste_center(frame, cached(("star", sz, col), lambda: star(sz, col)), x, y,
+                     pop_scale(dt - t0, 0.15), alpha=max(0.0, 1 - max(0, dt - 1.0) / 0.4))
+
 def draw_logo(frame):
     lg = cached("logo", logo_badge)
     frame.alpha_composite(lg, (40, 90))
@@ -425,8 +470,15 @@ def draw_overlays(frame, kind, seg, st, ot):
     # tags (top pill, slide in)
     for a, b, txt in TAGS:
         if a <= st <= b:
-            p = cached(("tag", txt), lambda: pill(txt, size=46, bg=TEAL if "comment" not in txt else PINK))
+            full = txt.replace("*", "")
+            nshow = len(full) if st - a < 0.2 else min(len(full), int((st - a - 0.2) / TYPE_CPS_DT) + 1)
+            nshow = max(1, nshow) if st - a >= 0.2 else len(full)
+            bg = TEAL if "comment" not in txt else PINK
+            base_p = cached(("tag", txt), lambda: pill(txt, size=46, bg=bg))
+            p = base_p if nshow >= len(full) else cached(("tagtw", txt, nshow), lambda: pill_tw(full, nshow, bg))
             k = ease((st - a) / 0.2)
+            if st - a < 0.2:
+                p = cached(("tagtw", txt, 0), lambda: pill_tw(full, 0, bg))
             frame.alpha_composite(p, (int(-p.width + (60 + p.width) * k), 270)) if k >= 1 else \
                 safe_composite(frame, p, int(-p.width + (60 + p.width) * k), 270)
     # stickers
@@ -444,6 +496,8 @@ def draw_overlays(frame, kind, seg, st, ot):
             img = cached(("cap", txt), lambda: text_block(txt, size=128 if big else 94, emo=emo,
                                                            stroke=12 if big else 10, upper=False))
             paste_center(frame, img, W / 2, CAP_Y, pop_scale(st - a, 0.16), rot=(-3 if big else 0))
+            if "*" in txt:
+                draw_sparkles(frame, img.width, img.height, st - a, hash(txt))
             break
     # red flash
     for t0, dur in FLASHES:

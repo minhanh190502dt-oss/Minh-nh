@@ -102,4 +102,5 @@ SFX = [
 
 # Hook (first 3 seconds) length in the output; the hook clip freezes on its last frame if shorter
 HOOK_LEN = 0.0   # no silent teaser: video opens straight on her voice
-HOOK_FX = 3.0    # hook effects are layered over the first 3s of speech
+HOOK_FX = 3.0
+TYPE_CPS_DT = 0.035   # typewriter: seconds per character for tag pills    # hook effects are layered over the first 3s of speech
