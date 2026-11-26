@@ -54,6 +54,14 @@ def sfx(kind):
         return 0.5 * x
     raise ValueError(kind)
 
+def riser(dur):
+    n = int(dur * SR); t = np.arange(n) / SR
+    nz = rng.standard_normal(n)
+    hp = nz - lp(nz, 4)
+    ramp = (t / dur) ** 2
+    tone = sweep(200, 1600, dur)
+    return (0.5 * hp + 0.35 * tone) * ramp
+
 def place(buf, sig, t, gain=1.0):
     i = int(t * SR)
     j = min(len(buf), i + len(sig))
@@ -61,11 +69,19 @@ def place(buf, sig, t, gain=1.0):
 
 # ---------- SFX track ----------
 fx = np.zeros(N)
-place(fx, sfx("whoosh"), 0.0, 1.0)
-place(fx, sfx("boom"), 0.05, 0.8)
-place(fx, sfx("pop"), 0.18, 1.0)
-place(fx, sfx("pop"), 0.45, 1.0)
-place(fx, sfx("whoosh"), R.hook_len - 0.25, 1.0)
+# hook: impact, two slams, burst, banner, riser into the drop
+place(fx, sfx("boom"), 0.0, 1.0)
+place(fx, sfx("scratch"), 0.0, 0.8)
+place(fx, sfx("boom"), 0.15, 0.7)
+place(fx, sfx("pop"), 0.15, 1.0)
+place(fx, sfx("boom"), 0.45, 0.9)
+place(fx, sfx("whoosh"), 0.42, 1.0)
+place(fx, sfx("ding"), 1.0, 0.9)
+place(fx, sfx("pop"), 1.35, 1.0)
+place(fx, sfx("tick"), 1.6, 1.0)
+place(fx, riser(R.hook_len - 1.3), 1.3, 0.9)
+place(fx, sfx("whoosh"), R.hook_len - 0.3, 1.0)
+place(fx, sfx("boom"), R.hook_len, 0.9)
 for t, k in SFX:
     place(fx, sfx(k), R.s2o(t), 0.9)
 place(fx, sfx("whoosh"), R.MAIN_END - 0.2, 1.0)
@@ -127,11 +143,13 @@ parts, labels = [], []
 segs = [HOOK] + SEGMENTS
 fc = []
 for i, (a, b) in enumerate(segs):
-    vol = 0.35 if i == 0 else 1.0
-    fc.append(f"[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,afade=t=out:st={b-a-0.03:.3f}:d=0.03,volume={vol}[a{i}]")
+    vol = 0.2 if i == 0 else 1.0
+    pad = f",apad=whole_dur={HOOK_LEN},atrim=0:{HOOK_LEN}" if i == 0 else ""
+    fc.append(f"[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,afade=t=out:st={b-a-0.03:.3f}:d=0.03,volume={vol}{pad}[a{i}]")
     labels.append(f"[a{i}]")
-fc.append("".join(labels) + f"concat=n={len(segs)}:v=0:a=1,highpass=f=90,afftdn=nf=-28,"
-          f"acompressor=threshold=-20dB:ratio=3:attack=5:release=120,apad=whole_dur={TOTAL:.3f},"
+fc.append("".join(labels) + f"concat=n={len(segs)}:v=0:a=1,highpass=f=100,lowpass=f=10000,afftdn=nr=20:nf=-30:tn=1,"
+          f"equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3200:t=q:w=1.2:g=5,equalizer=f=6500:t=q:w=1:g=2,"
+          f"acompressor=threshold=-24dB:ratio=4:attack=5:release=100:makeup=4,alimiter=limit=0.9,apad=whole_dur={TOTAL:.3f},"
           f"atrim=0:{TOTAL:.3f},aresample={SR}[v]")
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", R.SRC, "-filter_complex", ";".join(fc),
                 "-map", "[v]", "-ac", "1", f"{W}/voice.wav"], check=True)

@@ -17,7 +17,7 @@ TEAL = (20, 110, 104)
 TEAL_DARK = (9, 70, 66)
 
 # ---------- timeline mapping ----------
-hook_len = HOOK[1] - HOOK[0]
+hook_len = HOOK_LEN
 offsets = []
 o = hook_len
 for a, b in SEGMENTS:
@@ -41,7 +41,7 @@ def s2o(t):
 def o2s(t):
     """return (kind, seg_index, src_time)"""
     if t < hook_len:
-        return "hook", -1, HOOK[0] + t
+        return "hook", -1, min(HOOK[0] + t, HOOK[1] - 0.05)
     for i, ((a, b), off) in enumerate(zip(SEGMENTS, offsets)):
         if t < off + (b - a):
             return "main", i, a + (t - off)
@@ -84,28 +84,45 @@ def parse_hl(text):
     return out
 
 def text_block(text, size=86, emo=None, max_w=960, fill=(255, 255, 255), hl_fill=YELLOW,
-               stroke=10, fontpath=FONT_BLACK, upper=False, line_gap=1.32):
+               stroke=10, fontpath=FONT_BLACK, upper=False, line_gap=1.5):
     f = font(fontpath, size)
     words = parse_hl(text)
     if upper:
         words = [(w.upper(), h) for w, h in words]
     space = f.getlength(" ")
-    # wrap
-    lines, cur, cur_w = [], [], 0
+    # wrap: "|" forces a line break; a highlighted phrase is never split across lines
+    groups = []
     for w, h in words:
-        ww = f.getlength(w)
-        if cur and cur_w + space + ww > max_w:
+        if w == "|":
+            groups.append("BR"); continue
+        if h and groups and groups[-1] != "BR" and groups[-1][-1][1]:
+            groups[-1].append((w, h))
+        else:
+            groups.append([(w, h)])
+    lines, cur, cur_w = [], [], 0
+    for g in groups:
+        if g == "BR":
+            if cur:
+                lines.append(cur)
+            cur, cur_w = [], 0
+            continue
+        gw = sum(f.getlength(w) for w, _ in g) + space * (len(g) - 1)
+        if cur and cur_w + space + gw > max_w:
             lines.append(cur); cur, cur_w = [], 0
-        cur_w += (space if cur else 0) + ww
-        cur.append((w, h, ww))
+        for w, h in g:
+            ww = f.getlength(w)
+            cur_w += (space if cur else 0) + ww
+            cur.append((w, h, ww))
     if cur:
         lines.append(cur)
+    text_block.last_lines = len(lines)
     lh = int(size * line_gap)
     emo_sz = int(size * 1.25) if emo else 0
     widths = [sum(x[2] for x in L) + space * (len(L) - 1) for L in lines]
     last_extra = (emo_sz + 14) if emo else 0
     Wd = int(max(widths[:-1] + [widths[-1] + last_extra]) + 2 * stroke + 20)
-    Hd = int(lh * len(lines) + 2 * stroke + size * 0.35)
+    TP = int(size * 0.7)  # room for stacked Vietnamese diacritics (Ữ, Ế, Ặ...)
+    Hd = int(TP + lh * len(lines) + 2 * stroke + size * 0.6)
     img = Image.new("RGBA", (Wd, Hd), (0, 0, 0, 0))
     # drop shadow layer
     sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -113,7 +130,7 @@ def text_block(text, size=86, emo=None, max_w=960, fill=(255, 255, 255), hl_fill
     for li, L in enumerate(lines):
         lw = widths[li] + (last_extra if li == len(lines) - 1 else 0)
         x = (Wd - lw) / 2
-        y = stroke + li * lh
+        y = TP + stroke + li * lh
         for w, h, ww in L:
             inner = max(3, int(stroke * 0.55))
             ds.text((x + 5, y + 8), w, font=f, fill=(0, 0, 0, 130), stroke_width=stroke, stroke_fill=(0, 0, 0, 130))
@@ -127,6 +144,10 @@ def text_block(text, size=86, emo=None, max_w=960, fill=(255, 255, 255), hl_fill
             img.alpha_composite(emoji(emo, emo_sz), (int(x + 4), int(y - size * 0.12)))
     sh = sh.filter(ImageFilter.GaussianBlur(4))
     sh.alpha_composite(img)
+    bb = sh.getchannel("A").getbbox()
+    if bb:
+        m = 10
+        sh = sh.crop((max(0, bb[0] - m), max(0, bb[1] - m), min(sh.width, bb[2] + m), min(sh.height, bb[3] + m)))
     return sh
 
 def pill(text, size=46, bg=PINK, fg=(255, 255, 255)):
@@ -134,12 +155,13 @@ def pill(text, size=46, bg=PINK, fg=(255, 255, 255)):
     f = font(FONT_XB, size)
     tw = f.getlength(t)
     pad_x, pad_y = 30, 16
-    Wd, Hd = int(tw + 2 * pad_x), int(size * 1.25 + 2 * pad_y)
+    Wd, Hd = int(tw + 2 * pad_x), int(size * 1.7 + 2 * pad_y)
     img = Image.new("RGBA", (Wd + 12, Hd + 12), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     d.rounded_rectangle((8, 10, Wd + 8, Hd + 10), radius=Hd // 2, fill=(0, 0, 0, 140))
     d.rounded_rectangle((0, 0, Wd, Hd), radius=Hd // 2, fill=bg + (255,))
-    d.text((pad_x, pad_y - size * 0.05), t, font=f, fill=fg)
+    bb = d.textbbox((0, 0), t, font=f)
+    d.text((pad_x, (Hd - (bb[3] - bb[1])) / 2 - bb[1]), t, font=f, fill=fg)
     return img
 
 _tb_cache = {}
@@ -193,15 +215,22 @@ def camera(kind, seg, st, ot):
             elif b < st <= b + 0.12:
                 z *= 1 + (zz - 1) * (1 - ease((st - b) / 0.12))
     elif kind == "hook":
-        z = 1.08 + 0.10 * (ot / hook_len)
+        # violent punch-in on open, then slow push
+        z = 1.55 - 0.43 * ease(ot / 0.35)
+        z += 0.12 * max(0.0, ot - 0.35) / (hook_len - 0.35)
+        for t0 in (0.15, 0.45):   # micro bumps on each title slam
+            if t0 <= ot < t0 + 0.15:
+                z += 0.08 * (1 - (ot - t0) / 0.15)
     dx = dy = 0.0
     shakes = list(SHAKES) if kind == "main" else []
+    tt = st
     if kind == "hook":
-        shakes = [(HOOK[0], 0.45, 22)]
+        shakes = [(0.0, 0.35, 34), (0.15, 0.3, 26), (0.45, 0.4, 30), (1.0, 0.25, 14)]
+        tt = ot
     for t0, dur, amp in shakes:
-        if t0 <= st <= t0 + dur:
-            k = 1 - (st - t0) / dur
-            rnd = random.Random(int(st * 1000))
+        if t0 <= tt <= t0 + dur:
+            k = 1 - (tt - t0) / dur
+            rnd = random.Random(int(tt * 1000) + int(t0 * 7))
             dx += amp * k * rnd.uniform(-1, 1)
             dy += amp * k * rnd.uniform(-1, 1)
     if (dx or dy) and z < 1.06:
@@ -217,28 +246,97 @@ def apply_camera(img, z, dx, dy):
     y0 = min(max(cy - ch / 2, 0), H - ch)
     return img.resize((W, H), Image.BICUBIC, box=(x0, y0, x0 + cw, y0 + ch))
 
+
+# ---------- hook effects ----------
+def slam_scale(dt):
+    if dt < 0:
+        return 0
+    if dt < 0.10:
+        return 2.8 - (2.8 - 0.9) * ease(dt / 0.10)
+    if dt < 0.18:
+        return 0.9 + 0.1 * ((dt - 0.10) / 0.08)
+    return 1.0 + 0.035 * math.sin((dt - 0.18) * 7)
+
+def _focus_lines(seed):
+    rnd = random.Random(seed)
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    cx, cy = W / 2, H * 0.45
+    for _ in range(120):
+        a = rnd.uniform(0, 2 * math.pi)
+        r0 = rnd.uniform(520, 760)
+        r1 = 1500
+        wdt = rnd.uniform(0.004, 0.012)
+        pts = [(cx + r0 * math.cos(a), cy + r0 * math.sin(a)),
+               (cx + r1 * math.cos(a - wdt), cy + r1 * math.sin(a - wdt)),
+               (cx + r1 * math.cos(a + wdt), cy + r1 * math.sin(a + wdt))]
+        d.polygon(pts, fill=(255, 255, 255, rnd.randint(140, 220)))
+    return img
+
+def _vignette():
+    y, x = np.ogrid[:H, :W]
+    r = np.sqrt(((x - W / 2) / (W / 2)) ** 2 + ((y - H * 0.45) / (H / 2)) ** 2)
+    a = np.clip((r - 0.55) / 0.6, 0, 1) * 200
+    arr = np.zeros((H, W, 4), np.uint8); arr[..., 3] = a.astype(np.uint8)
+    return Image.fromarray(arr, "RGBA")
+
+def glitch(img, t, strength):
+    arr = np.asarray(img.convert("RGB")).copy()
+    sh = int(18 * strength)
+    out = arr.copy()
+    out[:, :, 0] = np.roll(arr[:, :, 0], sh, axis=1)
+    out[:, :, 2] = np.roll(arr[:, :, 2], -sh, axis=1)
+    rnd = random.Random(int(t * 1000))
+    for _ in range(int(7 * strength) + 1):
+        y0 = rnd.randint(0, H - 80); hgt = rnd.randint(20, 120)
+        out[y0:y0 + hgt] = np.roll(out[y0:y0 + hgt], rnd.randint(-80, 80), axis=1)
+    return Image.fromarray(out).convert("RGBA")
+
+BURST = [(i * 2 * math.pi / 12 + random.Random(i).uniform(-0.2, 0.2), random.Random(i + 50).uniform(900, 1500),
+          ["1f9cb", "1f525", "1f631", "1f4a8"][i % 4], random.Random(i + 9).uniform(-40, 40)) for i in range(12)]
+
+def draw_hook(frame, ot):
+    # focus lines (re-drawn every 2 frames for a "vibrating" comic look)
+    k = int(ot * FPS / 2) % 4
+    fl = cached(("fl", k), lambda: _focus_lines(k))
+    a = 0.85 if ot < 2.0 else 0.85 * max(0, 1 - (ot - 2.0) / 1.0)
+    paste_center(frame, fl, W / 2, H / 2, 1.0, alpha=a)
+    frame.alpha_composite(cached("vig", _vignette))
+    # emoji burst from centre at second slam
+    bt = ot - 0.45
+    if 0 <= bt <= 1.3:
+        for ang, spd, code, rot in BURST:
+            dist = spd * (1 - (1 - min(bt, 0.8) / 0.8) ** 2) * 0.55
+            x = W / 2 + dist * math.cos(ang); y = H * 0.45 + dist * math.sin(ang) * 1.2
+            al = 1.0 if bt < 0.9 else max(0, 1 - (bt - 0.9) / 0.4)
+            paste_center(frame, emoji(code, 150), x, y, 0.6 + 0.6 * min(1, bt / 0.3), alpha=al, rot=rot * bt)
+    # banner "HÀNG HIẾM"
+    ban = cached("ban", lambda: pill("HÀNG HIẾM 🔥".replace(" 🔥",""), size=88, bg=(230, 40, 50)))
+    if ot >= 1.0:
+        wob = math.sin((ot - 1.0) * 12) * 4
+        paste_center(frame, ban, W / 2, 440, slam_scale(ot - 1.0), rot=-7 + wob)
+    t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=165, stroke=15, max_w=1040))
+    t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=175, stroke=17, max_w=1060))
+    t3 = cached("h3", lambda: text_block("nhập về bán có nổi hông đây", size=66, emo="1f62d", stroke=9, max_w=1000))
+    paste_center(frame, t1, W / 2, 640, slam_scale(ot - 0.15), rot=-4)
+    paste_center(frame, t2, W / 2, 860, slam_scale(ot - 0.45), rot=3)
+    paste_center(frame, t3, W / 2, 1090, pop_scale(ot - 1.35, 0.2))
+    bob = math.sin(ot * 9) * 12
+    paste_center(frame, emoji("1f9cb", 240), 150, 300 + bob, pop_scale(ot - 1.2, 0.2), rot=12)
+    paste_center(frame, emoji("1f525", 200), 930, 310 - bob, pop_scale(ot - 1.25, 0.2), rot=-10)
+
 # ---------- overlays ----------
 CAP_Y = 1300
 
 def draw_overlays(frame, kind, seg, st, ot):
     if kind == "hook":
-        dim = Image.new("RGBA", (W, H), (0, 0, 0, 90))
-        frame.alpha_composite(dim)
-        t1 = cached("h1", lambda: text_block("TRÀ SỮA", size=150, stroke=14, max_w=1040))
-        t2 = cached("h2", lambda: text_block("*ĐIẾU CÀY?!*", size=150, stroke=15, max_w=1060))
-        t3 = cached("h3", lambda: text_block("nhập về bán có nổi hông đây", size=64, emo="1f62d", stroke=8, max_w=980))
-        paste_center(frame, t1, W / 2, 620, pop_scale(ot - 0.0, 0.22), rot=-4)
-        paste_center(frame, t2, W / 2, 830, pop_scale(ot - 0.18, 0.22), rot=3)
-        paste_center(frame, t3, W / 2, 1030, pop_scale(ot - 0.45, 0.2))
-        bob = math.sin(ot * 9) * 12
-        paste_center(frame, emoji("1f9cb", 260), 170, 430 + bob, pop_scale(ot - 0.3, 0.2), rot=12)
-        paste_center(frame, emoji("1f4a8", 200), 900, 450 - bob, pop_scale(ot - 0.4, 0.2), rot=-10)
+        draw_hook(frame, ot)
         return
     if kind == "end":
         et = ot - MAIN_END
         frame.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 130)))
         a = cached("e1", lambda: text_block("mấy bà muốn", size=88))
-        b = cached("e2", lambda: text_block("*NHẬP VỀ BÁN* hông?", size=110, stroke=12))
+        b = cached("e2", lambda: text_block("*NHẬP VỀ BÁN* | hông?", size=110, stroke=12))
         c = cached("e3", lambda: pill("comment liền cho tui biết nha", size=50, bg=PINK))
         paste_center(frame, a, W / 2, 700, pop_scale(et, 0.2))
         paste_center(frame, b, W / 2, 880, pop_scale(et - 0.15, 0.22), rot=-2)
@@ -319,7 +417,13 @@ def main():
             continue
         z, dx, dy = camera(kind, seg, st, ot)
         img = apply_camera(base, z, dx, dy).convert("RGBA")
+        if kind == "hook":
+            for g0, g1 in ((0.0, 0.28), (0.45, 0.6), (1.6, 1.72), (2.82, 3.0)):
+                if g0 <= ot < g1:
+                    img = glitch(img, ot, 1.0 - 0.5 * (ot - g0) / (g1 - g0))
         draw_overlays(img, kind, seg, st, ot)
+        if ot < 0.12:
+            img.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(255 * (1 - ot / 0.12)))))
         # white flash after hook
         if hook_len <= ot < hook_len + 0.15:
             al = int(230 * (1 - (ot - hook_len) / 0.15))
